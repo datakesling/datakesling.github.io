@@ -327,7 +327,7 @@ td{
  font-weight:500;
  margin-bottom:6px;
  ">
-  Data per Tanggal :
+  Data per Tanggal : 
  </div>
 
  <input type="date" id="filterTanggal" class="filter-date">
@@ -924,17 +924,21 @@ function exportPDFHarian(){
  doc.save("laporan-harian-"+tanggal+".pdf");
 }
 
-
 // PDF BULANAN
 function exportPDF(){
+
  const { jsPDF } = window.jspdf;
+
  let bulan = filterBulan.value;
+
  if(!bulan)
  return alert("Pilih bulan dulu");
+
  let doc = new jsPDF();
- // HEADER
+
  doc.setFont("helvetica","bold");
  doc.setFontSize(16);
+
  doc.text(
   "LAPORAN LIMBAH BULANAN",
   105,
@@ -943,8 +947,10 @@ function exportPDF(){
   null,
   "center"
  );
+
  doc.setFontSize(11);
  doc.setFont("helvetica","normal");
+
  doc.text(
   "RSUD KH. Muhammad Thohir Krui",
   105,
@@ -953,6 +959,7 @@ function exportPDF(){
   null,
   "center"
  );
+
  doc.text(
   "Kesehatan Lingkungan",
   105,
@@ -961,176 +968,159 @@ function exportPDF(){
   null,
   "center"
  );
+
  doc.line(20,38,190,38);
+
  doc.setFontSize(12);
+
  doc.text("Bulan : "+bulan,20,50);
+
+ // AMBIL BULAN & TAHUN
+ let bulanMap = {
+  "Januari":0,
+  "Februari":1,
+  "Maret":2,
+  "April":3,
+  "Mei":4,
+  "Juni":5,
+  "Juli":6,
+  "Agustus":7,
+  "September":8,
+  "Oktober":9,
+  "November":10,
+  "Desember":11
+ };
+
+ let split = bulan.split(" ");
+ let namaBulan = split[0];
+ let tahun = parseInt(split[1]);
+
+ let bulanIndex = bulanMap[namaBulan];
+
+ // JUMLAH HARI DALAM BULAN
+ let jumlahHari = new Date(
+  tahun,
+  bulanIndex + 1,
+  0
+ ).getDate();
+
+ // SIMPAN DATA PER TANGGAL
+ let dataPerHari = {};
+
  // AMBIL DATA FIREBASE
  db.collection("limbah")
- .orderBy("tanggal","asc")
  .get()
- .then((snap)=>{
-  let rows=[];
-  let totalB3=0;
-  let totalDom=0;
-  let grandTotal=0;
-  let no=1;
-  let dataPerHari={};
-  snap.forEach(docSnap=>{
-   let d=docSnap.data();
-   let t=d.tanggal.toDate();
-   let bulanData=t.toLocaleString('id-ID',{
+ .then(snapshot=>{
+
+  snapshot.forEach(docSnap=>{
+
+   let d = docSnap.data();
+
+   let t = d.tanggal.toDate();
+
+   let b = t.toLocaleString('id-ID',{
     month:'long',
     year:'numeric'
    });
-   // FILTER BULAN
-   if(bulanData===bulan){
-    let tanggalFormat=t.toLocaleDateString('id-ID',{
-     weekday:'long',
-     day:'numeric',
-     month:'long',
-     year:'numeric'
-    });
-    // GROUP HARIAN
-    if(!dataPerHari[tanggalFormat]){
-     dataPerHari[tanggalFormat]={
+
+   if(b === bulan){
+
+    let hari = t.getDate();
+
+    if(!dataPerHari[hari]){
+
+     dataPerHari[hari]={
       b3:0,
       dom:0
      };
     }
-    dataPerHari[tanggalFormat].b3 += d.b3;
-    dataPerHari[tanggalFormat].dom += d.dom;
+
+    dataPerHari[hari].b3 += d.b3;
+    dataPerHari[hari].dom += d.dom;
    }
   });
 
-// AMBIL BULAN & TAHUN
-let namaBulan = bulan.split(" ")[0];
-let tahun = parseInt(bulan.split(" ")[1]);
+  let rows=[];
 
-const bulanMap = {
- "Januari":0,
- "Februari":1,
- "Maret":2,
- "April":3,
- "Mei":4,
- "Juni":5,
- "Juli":6,
- "Agustus":7,
- "September":8,
- "Oktober":9,
- "November":10,
- "Desember":11
-};
+  let totalB3=0;
+  let totalDom=0;
+  let totalSemua=0;
 
-let bulanIndex = bulanMap[namaBulan];
+  // LOOP SEMUA TANGGAL
+  for(let i=1;i<=jumlahHari;i++){
 
-// TOTAL HARI DALAM BULAN
-let jumlahHari = new Date(
- tahun,
- bulanIndex + 1,
- 0
-).getDate();
+   let adaData = dataPerHari[i];
 
-// LOOP SEMUA TANGGAL
-for(let i=1; i<=jumlahHari; i++){
+   let b3Val = adaData ? r(adaData.b3) : "-";
+   let domVal = adaData ? r(adaData.dom) : "-";
 
- let tanggalObj = new Date(
-  tahun,
-  bulanIndex,
-  i
- );
+   let totalVal = adaData
+    ? r(adaData.b3 + adaData.dom)
+    : "-";
 
- let tanggalFormat =
- tanggalObj.toLocaleDateString('id-ID',{
-  weekday:'long',
-  day:'numeric',
-  month:'long',
-  year:'numeric'
- });
+   rows.push([
+    i,
+    b3Val,
+    domVal,
+    totalVal
+   ]);
 
- // JIKA ADA DATA
- if(dataPerHari[tanggalFormat]){
+   if(adaData){
 
-  let b3 =
-  dataPerHari[tanggalFormat].b3;
+    totalB3 += adaData.b3;
+    totalDom += adaData.dom;
+    totalSemua += adaData.b3 + adaData.dom;
+   }
+  }
 
-  let dom =
-  dataPerHari[tanggalFormat].dom;
-
-  let total = b3 + dom;
-
-  rows.push([
-   no++,
-   tanggalFormat,
-   r(b3),
-   r(dom),
-   r(total)
-  ]);
-
-  totalB3 += b3;
-  totalDom += dom;
-  grandTotal += total;
- }
-
- // JIKA TIDAK ADA DATA
- else{
-
-  rows.push([
-   no++,
-   tanggalFormat,
-   "-",
-   "-",
-   "-"
-  ]);
- }
-
-}
-
-   totalB3 += b3;
-   totalDom += dom;
-   grandTotal += total;
-  });
-  // TOTAL BULANAN
+  // TOTAL
   rows.push([
    "",
-   "TOTAL BULANAN",
    r(totalB3),
    r(totalDom),
-   r(grandTotal)
+   r(totalSemua)
   ]);
-  // TABEL PDF
+
   doc.autoTable({
+
    startY:60,
+
    head:[[
-    "No",
-    "Hari / Tanggal",
+    "Tanggal",
     "B3 (kg)",
     "Domestik (kg)",
     "Total (kg)"
    ]],
+
    body:rows,
+
    styles:{
     halign:'center'
    },
+
    headStyles:{
     fillColor:[26,140,132]
-   },
-   columnStyles:{
-    1:{halign:'left'}
    }
   });
-  // TTD
-  let y=doc.lastAutoTable.finalY+20;
-  let tanggal=new Date().toLocaleDateString('id-ID',{
+
+  let y = doc.lastAutoTable.finalY + 20;
+
+  let tanggal = new Date().toLocaleDateString('id-ID',{
    day:'numeric',
    month:'long',
    year:'numeric'
   });
+
   doc.text("Krui, "+tanggal,140,y);
+
   doc.text("Ka. Ruang Kesling,",140,y+8);
+
   doc.text("(__________________)",140,y+30);
-  // SAVE
+
   doc.save("laporan-"+bulan+".pdf");
+
  });
+
 }
 
 
