@@ -1001,18 +1001,90 @@ function exportPDF(){
     dataPerHari[tanggalFormat].dom += d.dom;
    }
   });
-  // MASUKKAN KE ROW PDF
-  Object.keys(dataPerHari).forEach(tgl=>{
-   let b3 = dataPerHari[tgl].b3;
-   let dom = dataPerHari[tgl].dom;
-   let total = b3 + dom;
-   rows.push([
-    no++,
-    tgl,
-    r(b3),
-    r(dom),
-    r(total)
-   ]);
+
+// AMBIL BULAN & TAHUN
+let namaBulan = bulan.split(" ")[0];
+let tahun = parseInt(bulan.split(" ")[1]);
+
+const bulanMap = {
+ "Januari":0,
+ "Februari":1,
+ "Maret":2,
+ "April":3,
+ "Mei":4,
+ "Juni":5,
+ "Juli":6,
+ "Agustus":7,
+ "September":8,
+ "Oktober":9,
+ "November":10,
+ "Desember":11
+};
+
+let bulanIndex = bulanMap[namaBulan];
+
+// TOTAL HARI DALAM BULAN
+let jumlahHari = new Date(
+ tahun,
+ bulanIndex + 1,
+ 0
+).getDate();
+
+// LOOP SEMUA TANGGAL
+for(let i=1; i<=jumlahHari; i++){
+
+ let tanggalObj = new Date(
+  tahun,
+  bulanIndex,
+  i
+ );
+
+ let tanggalFormat =
+ tanggalObj.toLocaleDateString('id-ID',{
+  weekday:'long',
+  day:'numeric',
+  month:'long',
+  year:'numeric'
+ });
+
+ // JIKA ADA DATA
+ if(dataPerHari[tanggalFormat]){
+
+  let b3 =
+  dataPerHari[tanggalFormat].b3;
+
+  let dom =
+  dataPerHari[tanggalFormat].dom;
+
+  let total = b3 + dom;
+
+  rows.push([
+   no++,
+   tanggalFormat,
+   r(b3),
+   r(dom),
+   r(total)
+  ]);
+
+  totalB3 += b3;
+  totalDom += dom;
+  grandTotal += total;
+ }
+
+ // JIKA TIDAK ADA DATA
+ else{
+
+  rows.push([
+   no++,
+   tanggalFormat,
+   "-",
+   "-",
+   "-"
+  ]);
+ }
+
+}
+
    totalB3 += b3;
    totalDom += dom;
    grandTotal += total;
