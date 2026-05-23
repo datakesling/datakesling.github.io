@@ -327,7 +327,7 @@ td{
  font-weight:500;
  margin-bottom:6px;
  ">
-  Data per Tanggal : 
+  Data per Tanggal :
  </div>
 
  <input type="date" id="filterTanggal" class="filter-date">
@@ -927,21 +927,14 @@ function exportPDFHarian(){
 
 // PDF BULANAN
 function exportPDF(){
-
  const { jsPDF } = window.jspdf;
-
- let bulan=filterBulan.value;
-
+ let bulan = filterBulan.value;
  if(!bulan)
  return alert("Pilih bulan dulu");
-
- let data=dataBulananGlobal[bulan];
-
- let doc=new jsPDF();
-
+ let doc = new jsPDF();
+ // HEADER
  doc.setFont("helvetica","bold");
  doc.setFontSize(16);
-
  doc.text(
   "LAPORAN LIMBAH BULANAN",
   105,
@@ -950,10 +943,8 @@ function exportPDF(){
   null,
   "center"
  );
-
  doc.setFontSize(11);
  doc.setFont("helvetica","normal");
-
  doc.text(
   "RSUD KH. Muhammad Thohir Krui",
   105,
@@ -962,7 +953,6 @@ function exportPDF(){
   null,
   "center"
  );
-
  doc.text(
   "Kesehatan Lingkungan",
   105,
@@ -971,57 +961,104 @@ function exportPDF(){
   null,
   "center"
  );
-
  doc.line(20,38,190,38);
-
  doc.setFontSize(12);
-
  doc.text("Bulan : "+bulan,20,50);
-
- doc.autoTable({
-
-  startY:60,
-
-  head:[[
-   "No",
-   "Jenis Limbah",
-   "Jumlah (kg)"
-  ]],
-
-  body:[
-   ["1","Limbah B3",r(data.b3)],
-   ["2","Limbah Domestik",r(data.dom)],
-   ["","TOTAL",r(data.b3+data.dom)]
-  ],
-
-  styles:{
-   halign:'center'
-  },
-
-  headStyles:{
-   fillColor:[26,140,132]
-  },
-
-  columnStyles:{
-   1:{halign:'left'}
-  }
+ // AMBIL DATA FIREBASE
+ db.collection("limbah")
+ .orderBy("tanggal","asc")
+ .get()
+ .then((snap)=>{
+  let rows=[];
+  let totalB3=0;
+  let totalDom=0;
+  let grandTotal=0;
+  let no=1;
+  let dataPerHari={};
+  snap.forEach(docSnap=>{
+   let d=docSnap.data();
+   let t=d.tanggal.toDate();
+   let bulanData=t.toLocaleString('id-ID',{
+    month:'long',
+    year:'numeric'
+   });
+   // FILTER BULAN
+   if(bulanData===bulan){
+    let tanggalFormat=t.toLocaleDateString('id-ID',{
+     weekday:'long',
+     day:'numeric',
+     month:'long',
+     year:'numeric'
+    });
+    // GROUP HARIAN
+    if(!dataPerHari[tanggalFormat]){
+     dataPerHari[tanggalFormat]={
+      b3:0,
+      dom:0
+     };
+    }
+    dataPerHari[tanggalFormat].b3 += d.b3;
+    dataPerHari[tanggalFormat].dom += d.dom;
+   }
+  });
+  // MASUKKAN KE ROW PDF
+  Object.keys(dataPerHari).forEach(tgl=>{
+   let b3 = dataPerHari[tgl].b3;
+   let dom = dataPerHari[tgl].dom;
+   let total = b3 + dom;
+   rows.push([
+    no++,
+    tgl,
+    r(b3),
+    r(dom),
+    r(total)
+   ]);
+   totalB3 += b3;
+   totalDom += dom;
+   grandTotal += total;
+  });
+  // TOTAL BULANAN
+  rows.push([
+   "",
+   "TOTAL BULANAN",
+   r(totalB3),
+   r(totalDom),
+   r(grandTotal)
+  ]);
+  // TABEL PDF
+  doc.autoTable({
+   startY:60,
+   head:[[
+    "No",
+    "Hari / Tanggal",
+    "B3 (kg)",
+    "Domestik (kg)",
+    "Total (kg)"
+   ]],
+   body:rows,
+   styles:{
+    halign:'center'
+   },
+   headStyles:{
+    fillColor:[26,140,132]
+   },
+   columnStyles:{
+    1:{halign:'left'}
+   }
+  });
+  // TTD
+  let y=doc.lastAutoTable.finalY+20;
+  let tanggal=new Date().toLocaleDateString('id-ID',{
+   day:'numeric',
+   month:'long',
+   year:'numeric'
+  });
+  doc.text("Krui, "+tanggal,140,y);
+  doc.text("Ka. Ruang Kesling,",140,y+8);
+  doc.text("(__________________)",140,y+30);
+  // SAVE
+  doc.save("laporan-"+bulan+".pdf");
  });
-
- let y=doc.lastAutoTable.finalY+20;
-
- let tanggal=new Date().toLocaleDateString('id-ID',{
-  day:'numeric',
-  month:'long',
-  year:'numeric'
- });
-
- doc.text("Krui, "+tanggal,140,y);
-
- doc.text("Ka. Ruang Kesling,",140,y+8);
-
- doc.text("(__________________)",140,y+30);
-
- doc.save("laporan-"+bulan+".pdf");
 }
 
 
