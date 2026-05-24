@@ -1083,7 +1083,7 @@ function exportPDF(){
 
   doc.autoTable({
 
- startY:55,
+ startY:58,
 
  head:[[
   "No",
@@ -1097,33 +1097,47 @@ function exportPDF(){
 
  styles:{
   halign:'center',
-  fontSize:7,
-  cellPadding:1
+  fontSize:8,
+  cellPadding:1.5
  },
 
  headStyles:{
   fillColor:[26,140,132],
-  fontSize:7
+  fontSize:8
  },
 
  columnStyles:{
-  0:{cellWidth:10},
-  1:{cellWidth:65,halign:'left'},
-  2:{cellWidth:25},
-  3:{cellWidth:30},
-  4:{cellWidth:25}
+  0:{
+   cellWidth:12
+  },
+
+  1:{
+   cellWidth:78,
+   halign:'left'
+  },
+
+  2:{
+   cellWidth:25
+  },
+
+  3:{
+   cellWidth:30
+  },
+
+  4:{
+   cellWidth:25
+  }
  },
 
  margin:{
-  top:10,
-  left:10,
-  right:10
+  left:15,
+  right:15
  },
 
- tableWidth:'auto'
+ tableWidth:'wrap'
 });
 
-let y = 250;
+let y = 265;
 
   let tanggal = new Date().toLocaleDateString('id-ID',{
    day:'numeric',
