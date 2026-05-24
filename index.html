@@ -1081,10 +1081,8 @@ function exportPDF(){
    r(grandTotal)
   ]);
 
- doc.autoTable({
-
+doc.autoTable({
  startY:58,
-
  head:[[
   "No",
   "Hari / Tanggal",
@@ -1092,59 +1090,52 @@ function exportPDF(){
   "Dom",
   "Total"
  ]],
-
  body:rows,
-
  styles:{
   halign:'center',
-  fontSize:8.5,
-  cellPadding:1.8
+  fontSize:8,
+  cellPadding:1.4,
+  valign:'middle'
  },
-
  headStyles:{
   fillColor:[26,140,132],
-  fontSize:8.5
+  fontSize:8,
+  fontStyle:'bold'
  },
-
  columnStyles:{
-
+  // NO
   0:{
-   cellWidth:14
+   cellWidth:12
   },
-
+  // HARI TANGGAL
   1:{
-   cellWidth:84,
+   cellWidth:72,
    halign:'left'
   },
-
+  // B3
   2:{
-   cellWidth:24
+   cellWidth:26
   },
-
+  // DOM
   3:{
-   cellWidth:30
+   cellWidth:26
   },
-
+  // TOTAL
   4:{
-   cellWidth:24
+   cellWidth:26
   }
-
  },
-
  margin:{
-  left:20,
-  right:20
+  left:19,
+  right:19
  },
-
- tableWidth:170
+ tableWidth:'auto'
 });
-
 // POSISI TANDA TANGAN
-let y = doc.lastAutoTable.finalY + 28;
-
-// AGAR TETAP 1 HALAMAN
-if(y > 265){
- y = 265;
+let y = doc.lastAutoTable.finalY + 18;
+// AGAR TETAP SATU HALAMAN
+if(y > 255){
+ y = 255;
 }
 
   let tanggal = new Date().toLocaleDateString('id-ID',{
