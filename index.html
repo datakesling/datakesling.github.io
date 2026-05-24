@@ -1083,32 +1083,47 @@ function exportPDF(){
 
   doc.autoTable({
 
-   startY:60,
+ startY:55,
 
-   head:[[
-    "No",
-    "Hari / Tanggal",
-    "B3 (kg)",
-    "Domestik (kg)",
-    "Total (kg)"
-   ]],
+ head:[[
+  "No",
+  "Hari / Tanggal",
+  "B3",
+  "Dom",
+  "Total"
+ ]],
 
-   body:rows,
+ body:rows,
 
-   styles:{
-    halign:'center'
-   },
+ styles:{
+  halign:'center',
+  fontSize:7,
+  cellPadding:1
+ },
 
-   headStyles:{
-    fillColor:[26,140,132]
-   },
+ headStyles:{
+  fillColor:[26,140,132],
+  fontSize:7
+ },
 
-   columnStyles:{
-    1:{halign:'left'}
-   }
-  });
+ columnStyles:{
+  0:{cellWidth:10},
+  1:{cellWidth:65,halign:'left'},
+  2:{cellWidth:25},
+  3:{cellWidth:30},
+  4:{cellWidth:25}
+ },
 
-  let y = doc.lastAutoTable.finalY + 20;
+ margin:{
+  top:10,
+  left:10,
+  right:10
+ },
+
+ tableWidth:'auto'
+});
+
+let y = 250;
 
   let tanggal = new Date().toLocaleDateString('id-ID',{
    day:'numeric',
