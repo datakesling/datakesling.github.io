@@ -1093,13 +1093,13 @@ doc.autoTable({
  body:rows,
  styles:{
   halign:'center',
-  fontSize:8,
-  cellPadding:1.4,
+  fontSize:8.2,
+  cellPadding:1.5,
   valign:'middle'
  },
  headStyles:{
   fillColor:[26,140,132],
-  fontSize:8,
+  fontSize:8.2,
   fontStyle:'bold'
  },
  columnStyles:{
@@ -1107,14 +1107,14 @@ doc.autoTable({
   0:{
    cellWidth:12
   },
-  // HARI TANGGAL
+  // HARI / TANGGAL
   1:{
-   cellWidth:72,
+   cellWidth:76,
    halign:'left'
   },
   // B3
   2:{
-   cellWidth:26
+   cellWidth:24
   },
   // DOM
   3:{
@@ -1122,35 +1122,27 @@ doc.autoTable({
   },
   // TOTAL
   4:{
-   cellWidth:26
+   cellWidth:24
   }
  },
+ // CENTER SESUAI GARIS HEADER
  margin:{
-  left:19,
-  right:19
+  left:17,
+  right:17
  },
- tableWidth:'auto'
+ tableWidth:176
 });
 // POSISI TANDA TANGAN
-let y = doc.lastAutoTable.finalY + 18;
-// AGAR TETAP SATU HALAMAN
-if(y > 255){
- y = 255;
+let y = doc.lastAutoTable.finalY + 20;
+// AGAR TETAP 1 HALAMAN
+if(y > 250){
+ y = 250;
 }
-
-  let tanggal = new Date().toLocaleDateString('id-ID',{
-   day:'numeric',
-   month:'long',
-   year:'numeric'
-  });
-
-  doc.text("Krui, "+tanggal,140,y);
-
-  doc.text("Ka. Ruang Kesling,",140,y+8);
-
-  doc.text("(__________________)",140,y+30);
-
-  doc.save("laporan-"+bulan+".pdf");
+// TTD
+doc.text("Krui, "+tanggal,140,y);
+doc.text("Ka. Ruang Kesling,",140,y+6);
+doc.text("(__________________)",140,y+24);
+doc.save("laporan-"+bulan+".pdf");
 
  });
 
