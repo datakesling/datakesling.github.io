@@ -443,7 +443,6 @@ function updateClock(){
 setInterval(updateClock,1000);
 updateClock();
 
-
 // FIREBASE
 const firebaseConfig={
  apiKey:"AIzaSyA9hQWa9pz4UYsXj9TF2OyIyIR4cO5wWWg",
@@ -464,7 +463,6 @@ function r(n){
  return Number(n).toFixed(2);
 }
 
-
 // HITUNG TOTAL
 b3.oninput=dom.oninput=()=>{
 
@@ -475,13 +473,11 @@ b3.oninput=dom.oninput=()=>{
  r((+b3.value||0)+(+dom.value||0))+" kg";
 };
 
-
 // VALIDASI NAMA
 nama.oninput=()=>{
  nama.classList.remove("error");
  errorNama.innerText="";
 };
-
 
 // VALIDASI INPUT
 function validasi(){
@@ -519,7 +515,6 @@ function validasi(){
  return ok;
 }
 
-
 // SIMPAN
 function simpan(){
 
@@ -547,7 +542,6 @@ function simpan(){
 
  total.innerText="0.00 kg";
 }
-
 
 // LOAD DATA
 function loadData(){
@@ -678,12 +672,10 @@ function loadData(){
  });
 }
 
-
 // FILTER TANGGAL
 filterTanggal.onchange=()=>{
  loadData();
 };
-
 
 // EDIT
 function edit(id,b3v,domv,n){
@@ -698,7 +690,6 @@ function edit(id,b3v,domv,n){
  editId=id;
 }
 
-
 // TOGGLE REKAP
 function toggleRekap(){
 
@@ -707,7 +698,6 @@ function toggleRekap(){
  ?"block"
  :"none";
 }
-
 
 // DROPDOWN BULAN
 function isiDropdownBulan(data){
@@ -725,7 +715,6 @@ function isiDropdownBulan(data){
   </option>`;
  });
 }
-
 
 // FILTER BULAN
 filterBulan.onchange=()=>{
@@ -745,7 +734,6 @@ filterBulan.onchange=()=>{
   renderChart(f);
  }
 };
-
 
 // RENDER CHART
 function renderChart(data){
@@ -800,7 +788,6 @@ function renderChart(data){
  totalBulanan.innerHTML=
  "Total B3: "+r(totalB3)+" kg | Domestik: "+r(totalDom)+" kg";
 }
-
 
 // PDF HARIAN
 function exportPDFHarian(){
@@ -924,15 +911,15 @@ function exportPDFHarian(){
  doc.save("laporan-harian-"+tanggal+".pdf");
 }
 
-
 // PDF BULANAN
 function exportPDF(){
  const { jsPDF } = window.jspdf;
  let bulan = filterBulan.value;
- if(!bulan)
- return alert("Pilih bulan dulu");
+ if(!bulan){
+  alert("Pilih bulan dulu");
+  return;
+ }
  let doc = new jsPDF();
- // HEADER
  doc.setFont("helvetica","bold");
  doc.setFontSize(16);
  doc.text(
@@ -964,7 +951,6 @@ function exportPDF(){
  doc.line(20,38,190,38);
  doc.setFontSize(12);
  doc.text("Bulan : "+bulan,20,50);
- // AMBIL DATA FIREBASE
  db.collection("limbah")
  .orderBy("tanggal","asc")
  .get()
@@ -975,49 +961,77 @@ function exportPDF(){
   let grandTotal=0;
   let no=1;
   let dataPerHari={};
+  let bulanParts = bulan.split(" ");
+  let namaBulan = bulanParts[0];
+  let tahun = parseInt(bulanParts[1]);
+  let daftarBulan = [
+   "Januari","Februari","Maret","April",
+   "Mei","Juni","Juli","Agustus",
+   "September","Oktober","November","Desember"
+  ];
+  let indexBulan = daftarBulan.indexOf(namaBulan);
+  let jumlahHari = new Date(
+   tahun,
+   indexBulan + 1,
+   0
+  ).getDate();
   snap.forEach(docSnap=>{
-   let d=docSnap.data();
-   let t=d.tanggal.toDate();
-   let bulanData=t.toLocaleString('id-ID',{
+   let d = docSnap.data();
+   let t = d.tanggal.toDate();
+   let bulanData = t.toLocaleString('id-ID',{
     month:'long',
     year:'numeric'
    });
-   // FILTER BULAN
-   if(bulanData===bulan){
-    let tanggalFormat=t.toLocaleDateString('id-ID',{
-     weekday:'long',
-     day:'numeric',
-     month:'long',
-     year:'numeric'
-    });
-    // GROUP HARIAN
-    if(!dataPerHari[tanggalFormat]){
-     dataPerHari[tanggalFormat]={
+   if(bulanData === bulan){
+    let tanggalKey = t.getDate();
+    if(!dataPerHari[tanggalKey]){
+     dataPerHari[tanggalKey]={
       b3:0,
       dom:0
      };
     }
-    dataPerHari[tanggalFormat].b3 += d.b3;
-    dataPerHari[tanggalFormat].dom += d.dom;
+    dataPerHari[tanggalKey].b3 += d.b3;
+    dataPerHari[tanggalKey].dom += d.dom;
    }
   });
-  // MASUKKAN KE ROW PDF
-  Object.keys(dataPerHari).forEach(tgl=>{
-   let b3 = dataPerHari[tgl].b3;
-   let dom = dataPerHari[tgl].dom;
-   let total = b3 + dom;
-   rows.push([
-    no++,
-    tgl,
-    r(b3),
-    r(dom),
-    r(total)
-   ]);
-   totalB3 += b3;
-   totalDom += dom;
-   grandTotal += total;
-  });
-  // TOTAL BULANAN
+  for(let hari=1; hari<=jumlahHari; hari++){
+   let tanggalObj = new Date(
+    tahun,
+    indexBulan,
+    hari
+   );
+   let tanggalFormat =
+   tanggalObj.toLocaleDateString('id-ID',{
+    weekday:'long',
+    day:'numeric',
+    month:'long',
+    year:'numeric'
+   });
+   if(dataPerHari[hari]){
+    let b3 = dataPerHari[hari].b3;
+    let dom = dataPerHari[hari].dom;
+    let total = b3 + dom;
+    rows.push([
+     no++,
+     tanggalFormat,
+     r(b3),
+     r(dom),
+     r(total)
+    ]);
+    totalB3 += b3;
+    totalDom += dom;
+    grandTotal += total;
+   }
+   else{
+    rows.push([
+     no++,
+     tanggalFormat,
+     "-",
+     "-",
+     "-"
+    ]);
+   }
+  }
   rows.push([
    "",
    "TOTAL BULANAN",
@@ -1025,7 +1039,6 @@ function exportPDF(){
    r(totalDom),
    r(grandTotal)
   ]);
-  // TABEL PDF
   doc.autoTable({
    startY:60,
    head:[[
@@ -1046,9 +1059,8 @@ function exportPDF(){
     1:{halign:'left'}
    }
   });
-  // TTD
-  let y=doc.lastAutoTable.finalY+20;
-  let tanggal=new Date().toLocaleDateString('id-ID',{
+  let y = doc.lastAutoTable.finalY + 20;
+  let tanggal = new Date().toLocaleDateString('id-ID',{
    day:'numeric',
    month:'long',
    year:'numeric'
@@ -1056,11 +1068,9 @@ function exportPDF(){
   doc.text("Krui, "+tanggal,140,y);
   doc.text("Ka. Ruang Kesling,",140,y+8);
   doc.text("(__________________)",140,y+30);
-  // SAVE
   doc.save("laporan-"+bulan+".pdf");
  });
 }
-
 
 // LOAD
 loadData();
